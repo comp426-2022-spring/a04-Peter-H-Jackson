@@ -52,7 +52,7 @@ function coinFlips(flips) {
       record[i] = coinFlip()
     }
     return record
-}
+} 
 function countFlips(array) {
     let count = { heads: 0, tails: 0 }
   
