@@ -18,10 +18,10 @@
   },
   "homepage": "https://github.com/comp426-2022-spring/a04-Peter-H-Jackson#readme",
   "dependencies": {
+    "better-sqlite3": "^7.5.1",
     "express": "^4.17.3",
     "fs": "^0.0.1-security",
     "minimist": "^1.2.5",
-    "morgan": "^1.10.0",
-    "node": "^17.5.0"
+    "morgan": "^1.10.0"
   }
 }
