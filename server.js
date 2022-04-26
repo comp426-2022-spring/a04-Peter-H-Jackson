@@ -8,7 +8,7 @@ const morgan = require('morgan');
 // Get port
 const args = require("minimist")(process.argv.slice(2))
 args["port"]
-if (args.port === undefined) { args.port = 5000 }
+if (args.port === undefined) { args.port = 5555 }
 var port = args.port
 
 // --help
@@ -35,29 +35,10 @@ const server = app.listen(port, () => {
     console.log("App is running on port %PORT%".replace("%PORT%", port))
 })
 
+  app.get('/app/error/', (req, res, next) => {
+    throw new Error('Error');
+  })
 
-if (args.log == 'true') {
-  const WRITESTREAM = fs.createWriteStream('access.log', { flags: 'a' });
-  app.use(morgan('combined'), { stream: WRITESTREAM });
-}
-
-app.use((req, res, next) => {
-    let logdata = {
-      remoteaddr: req.ip,
-      remoteuser: req.user,
-      time: Date.now(),
-      method: req.method,
-      url: req.url,
-      protocol: req.protocol,
-      httpversion: req.httpVersion,
-      status: res.statusCode,
-      referer: req.headers['referer'],
-      useragent: req.headers['user-agent']
-  }
-  const stmt = logdb.prepare('INSERT INTO accessLog (remoteaddr, remoteuser, time, method, url, protocol, httpversion, status, referer, useragent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
-  stmt.run(logdata.remoteaddr, logdata.remoteuser, logdata.time, logdata.method, logdata.url, logdata.protocol, logdata.httpversion, logdata.status, logdata.referer, logdata.useragent)
-  next()
-})
 
 // 3. Check endpoint at /app/ that returns 200 OK
 app.get("/app", (req, res) => {
