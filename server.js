@@ -1,6 +1,9 @@
 // Require Express.js
-const express = require('express')
-const app = express()
+const express = require('express');
+const app = express();
+const logdb = require("./database.js");
+const fs = require('fs');
+const morgan = require('morgan');
 
 // Get port
 const args = require("minimist")(process.argv.slice(2))
@@ -23,12 +26,38 @@ if (args.help === true) {
   process.exit(0)
 }
 
+app.use(express.json());
+app.use(express.urlencoded({extended: true}));
+
 
 // 1. server.js file that takes an arbitrary port number as a command line argument (i.e. I should be able to run it with node server.js. The port should default to 5000 if no argument is given.
 const server = app.listen(port, () => {
     console.log("App is running on port %PORT%".replace("%PORT%", port))
 })
 
+
+if (args.log == 'true') {
+  const WRITESTREAM = fs.createWriteStream('access.log', { flags: 'a' });
+  app.use(morgan('combined'), { stream: WRITESTREAM });
+}
+
+app.use((req, res, next) => {
+    let logdata = {
+      remoteaddr: req.ip,
+      remoteuser: req.user,
+      time: Date.now(),
+      method: req.method,
+      url: req.url,
+      protocol: req.protocol,
+      httpversion: req.httpVersion,
+      status: res.statusCode,
+      referer: req.headers['referer'],
+      useragent: req.headers['user-agent']
+  }
+  const stmt = logdb.prepare('INSERT INTO accessLog (remoteaddr, remoteuser, time, method, url, protocol, httpversion, status, referer, useragent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+  stmt.run(logdata.remoteaddr, logdata.remoteuser, logdata.time, logdata.method, logdata.url, logdata.protocol, logdata.httpversion, logdata.status, logdata.referer, logdata.useragent)
+  next()
+})
 
 // 3. Check endpoint at /app/ that returns 200 OK
 app.get("/app", (req, res) => {
